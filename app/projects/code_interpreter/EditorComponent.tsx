@@ -13,7 +13,6 @@ import { useTheme } from 'next-themes';
 import { Button } from './ui/button';
 import { Loader, Play, TriangleAlert } from 'lucide-react';
 import { codeSnippets, languageOptions } from './config';
-import { compileCode } from './compile';
 import toast from 'react-hot-toast';
 export interface CodeSnippetsProps {
   [key: string]: string;
@@ -54,8 +53,21 @@ export default function EditorComponent() {
         },
       ],
     };
+
     try {
-      const result = await compileCode(requestData);
+      const response = await fetch('/api/compile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const result = await response.json();
       setOutput(result.run.output.split('\n'));
       console.log(result);
       setLoading(false);
